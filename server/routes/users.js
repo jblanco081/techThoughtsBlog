@@ -1,8 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const jwt = require('../utils/jwt');
 const User = require('../models/user');
-const generateToken = require('../utils/jwt');
 const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
@@ -34,16 +33,22 @@ router.post('/login', async (req, res) => {
         const validPass = await bcrypt.compare(req.body.password, user.password);
         if (!validPass) return res.status(400).send('Invalid password');
 
-        const token = generateToken(user);
-        res.header('Authorization', `Bearer ${token}`).send({ token });
+        const token = jwt(user);
+        res.json({ token });
     } catch (err) {
         res.status(400).send(err);
     }
 });
 
-// A protected route example
-router.get('/protected', authenticateToken, (req, res) => {
-    res.send('This is a protected route');
+// Get user details route
+router.get('/user/:id', authenticateToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password');
+        if (!user) return res.status(404).send('User not found');
+        res.json(user);
+    } catch (err) {
+        res.status(400).send(err);
+    }
 });
 
 module.exports = router;
