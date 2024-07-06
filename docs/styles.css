@@ -3,6 +3,9 @@ body {
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 header {
@@ -18,7 +21,19 @@ h1 {
 }
 
 main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     padding: 1rem;
+}
+
+#authContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 100px; /* Adjust this value to lower the forms */
 }
 
 .form {
@@ -27,14 +42,17 @@ main {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin: 1rem 0;
     padding: 1rem;
+    width: 300px; /* Fixed width for better alignment */
+    text-align: center;
 }
 
 input, textarea {
-    width: 100%;
+    width: calc(100% - 1rem);
     padding: 0.5rem;
     margin: 0.5rem 0;
     border: 1px solid #ccc;
     border-radius: 4px;
+    box-sizing: border-box;
 }
 
 button {
