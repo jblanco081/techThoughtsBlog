@@ -1,8 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const jwt = require('../utils/jwt');
-const User = require('../models/user');
-const authenticateToken = require('../middleware/auth');
+const jwt = require('../utils/jwt'); // This utility generates JWT tokens
+const User = require('../models/user'); 
+const authenticateToken = require('../middleware/auth'); // Middleware to authenticate JWT tokens
 
 const router = express.Router();
 
@@ -33,8 +33,8 @@ router.post('/login', async (req, res) => {
         const validPass = await bcrypt.compare(req.body.password, user.password);
         if (!validPass) return res.status(400).send('Invalid password');
 
-        const token = jwt(user);
-        res.json({ token });
+        const token = jwt.generateToken(user);
+        res.json({ token, userId: user._id });
     } catch (err) {
         res.status(400).send(err);
     }
