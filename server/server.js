@@ -10,8 +10,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files from the 'docs' directory
+app.use(express.static(path.join(__dirname, '../docs')));
 
 // Routes
 app.use('/users', usersRoute);
@@ -19,7 +19,7 @@ app.use('/posts', postsRoute);
 
 // Handle all other routes with index.html (for SPA)
 app.get('*', (req, res) => {
-    res.sendFile(path.join('docs', 'index.html'));
+    res.sendFile(path.join(__dirname, '../docs', 'index.html'));
 });
 
 const PORT = process.env.PORT || 3000;
