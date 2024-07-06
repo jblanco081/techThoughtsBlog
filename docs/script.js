@@ -16,11 +16,34 @@ document.getElementById('registerForm').addEventListener('submit', async functio
 
     if (response.ok) {
         alert('User registered successfully');
+        autoLogin(username, password);
     } else {
         const errorText = await response.text();
         alert('User registration failed: ' + errorText);
     }
 });
+
+// Function to automatically log in after registration
+async function autoLogin(username, password) {
+    const response = await fetch(`${API_URL}/users/login`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
+        alert('Login successful');
+        updateUIForLoggedInUser(username);
+        fetchUserDetails(data.userId, data.token);
+    } else {
+        alert('Auto-login failed');
+    }
+}
 
 // Handle user login
 document.getElementById('loginForm').addEventListener('submit', async function(event) {
@@ -56,7 +79,7 @@ document.getElementById('logout').addEventListener('click', function() {
     alert('Logged out successfully');
 });
 
-// Function to fetch user details
+// Fetch user details
 async function fetchUserDetails(userId, token) {
     const response = await fetch(`${API_URL}/users/user/${userId}`, {
         method: 'GET',
@@ -102,7 +125,7 @@ document.getElementById('createPostForm').addEventListener('submit', async funct
     }
 });
 
-// Function to fetch and display posts
+// Fetch and display posts
 async function fetchPosts() {
     const response = await fetch(`${API_URL}/posts`);
     const posts = await response.json();
@@ -120,7 +143,7 @@ async function fetchPosts() {
     });
 }
 
-// Function to update UI for logged in user
+// Update UI for logged in user
 function updateUIForLoggedInUser(username) {
     document.getElementById('authForm').style.display = 'none';
     document.getElementById('userInfo').style.display = 'block';
@@ -128,7 +151,7 @@ function updateUIForLoggedInUser(username) {
     document.getElementById('postForm').style.display = 'block';
 }
 
-// Function to update UI for logged out user
+// Update UI for logged out user
 function updateUIForLoggedOutUser() {
     document.getElementById('authForm').style.display = 'block';
     document.getElementById('userInfo').style.display = 'none';
