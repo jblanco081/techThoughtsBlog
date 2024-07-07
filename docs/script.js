@@ -127,7 +127,7 @@ async function fetchPosts() {
             postDiv.innerHTML = `
                 <h2>${post.title}</h2>
                 <p>${post.content}</p>
-                <p class="author">By: ${post.author.username}</p>
+                <p class="author">By: ${post.author.username} on ${new Date(post.createdAt).toLocaleString()}</p>
                 ${post.video ? `<video controls><source src="${post.video}" type="video/mp4"></video>` : ''}
                 <div class="comments">
                     <h3>Comments</h3>
@@ -135,7 +135,7 @@ async function fetchPosts() {
                         ${post.comments.map(comment => `
                             <div class="comment">
                                 <p>${comment.text}</p>
-                                <p class="author">By: ${comment.author.username}</p>
+                                <p class="author">By: ${comment.author.username} on ${new Date(comment.createdAt).toLocaleString()}</p>
                             </div>
                         `).join('')}
                     </div>
