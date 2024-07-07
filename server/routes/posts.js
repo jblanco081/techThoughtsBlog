@@ -82,7 +82,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
-        await post.remove();
+        await post.deleteOne(); // Updated method
         res.json({ message: 'Post deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
