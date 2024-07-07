@@ -1,4 +1,4 @@
-const API_URL = 'https://techthoughtsblog.onrender.com';
+const API_URL = 'https://techthoughtsblog.onrender.com'; // Update this to your actual backend URL
 
 // Handle user registration
 document.getElementById('registerForm').addEventListener('submit', async function(event) {
@@ -6,42 +6,52 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     const username = document.getElementById('registerUsername').value;
     const password = document.getElementById('registerPassword').value;
 
-    const response = await fetch(`${API_URL}/users/register`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-    });
+    try {
+        const response = await fetch(`${API_URL}/users/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        });
 
-    if (response.ok) {
-        alert('User registered successfully');
-        autoLogin(username, password);
-    } else {
-        const errorText = await response.text();
-        alert('User registration failed: ' + errorText);
+        if (response.ok) {
+            alert('User registered successfully');
+            autoLogin(username, password);
+        } else {
+            const errorText = await response.text();
+            alert('User registration failed: ' + errorText);
+        }
+    } catch (err) {
+        console.error('Registration request failed:', err);
+        alert('An error occurred during registration.');
     }
 });
 
 // Function to automatically log in after registration
 async function autoLogin(username, password) {
-    const response = await fetch(`${API_URL}/users/login`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-    });
+    try {
+        const response = await fetch(`${API_URL}/users/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        });
 
-    if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userId', data.userId);
-        alert('Login successful');
-        updateUIForLoggedInUser(username);
-        fetchUserDetails(data.userId, data.token);
-    } else {
-        alert('Auto-login failed');
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userId', data.userId);
+            alert('Login successful');
+            updateUIForLoggedInUser(username);
+            fetchUserDetails(data.userId, data.token);
+        } else {
+            alert('Auto-login failed');
+        }
+    } catch (err) {
+        console.error('Auto-login request failed:', err);
+        alert('An error occurred during auto-login.');
     }
 }
 
@@ -68,8 +78,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             updateUIForLoggedInUser(username);
             fetchUserDetails(data.userId, data.token);
         } else {
-            const errorText = await response.text();
-            alert('Login failed: ' + errorText);
+            alert('Login failed: ' + await response.text());
         }
     } catch (err) {
         console.error('Login request failed:', err);
@@ -102,63 +111,48 @@ async function fetchUserDetails(userId, token) {
     }
 }
 
-
-// Handle post creation
-document.getElementById('createPostForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    const title = document.getElementById('postTitle').value;
-    const content = document.getElementById('postContent').value;
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-        alert('You must be logged in to create a post');
-        return;
-    }
-
-    const response = await fetch(`${API_URL}/posts`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ title, content })
-    });
-
-    if (response.ok) {
-        alert('Post created successfully');
-        fetchPosts();
-    } else {
-        alert('Failed to create post');
-    }
-});
-
 // Fetch and display posts
 async function fetchPosts() {
     const response = await fetch(`${API_URL}/posts`);
-    const posts = await response.json();
-    const postsDiv = document.getElementById('posts');
-    postsDiv.innerHTML = '';
-    posts.forEach(post => {
-        const postDiv = document.createElement('div');
-        postDiv.className = 'post';
-        postDiv.innerHTML = `
-            <h2>${post.title}</h2>
-            <p>${post.content}</p>
-            <p class="author">By: ${post.author.username}</p>
-        `;
-        postsDiv.appendChild(postDiv);
-    });
+    if (response.ok) {
+        const posts = await response.json();
+        const postsDiv = document.getElementById('posts');
+        postsDiv.innerHTML = '';
+        posts.forEach(post => {
+            const postDiv = document.createElement('div');
+            postDiv.className = 'post';
+            postDiv.innerHTML = `
+                <h2>${post.title}</h2>
+                <p>${post.content}</p>
+                <p class="author">By: ${post.author.username}</p>
+                ${post.video ? `<video controls><source src="${post.video}" type="video/mp4"></video>` : ''}
+                <div class="comments">
+                    <h3>Comments</h3>
+                    ${post.comments.map(comment => `
+                        <div class="comment">
+                            <p>${comment.text}</p>
+                            <p class="author">By: ${comment.author.username}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            postsDiv.appendChild(postDiv);
+        });
+    } else {
+        console.error('Failed to fetch posts:', await response.text());
+    }
 }
 
-// Update UI for logged in user
+// Function to update UI for logged in user
 function updateUIForLoggedInUser(username) {
     document.getElementById('authForm').style.display = 'none';
     document.getElementById('userInfo').style.display = 'block';
     document.getElementById('welcomeMessage').textContent = `Welcome, ${username}`;
     document.getElementById('postForm').style.display = 'block';
+    fetchPosts(); // Fetch posts after login
 }
 
-// Update UI for logged out user
+// Function to update UI for logged out user
 function updateUIForLoggedOutUser() {
     document.getElementById('authForm').style.display = 'block';
     document.getElementById('userInfo').style.display = 'none';
@@ -168,10 +162,9 @@ function updateUIForLoggedOutUser() {
 // Check if user is already logged in
 if (localStorage.getItem('token')) {
     const username = localStorage.getItem('username');
-    const userId = localStorage.getItem('userId');
     updateUIForLoggedInUser(username);
-    fetchUserDetails(userId, localStorage.getItem('token'));
+    fetchUserDetails(localStorage.getItem('userId'), localStorage.getItem('token'));
 }
 
-// Fetch posts on page load
-fetchPosts();
+// Ensure posts are fetched on page load
+document.addEventListener('DOMContentLoaded', fetchPosts);
