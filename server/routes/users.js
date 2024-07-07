@@ -39,6 +39,7 @@ router.post('/login', async (req, res) => {
         }
 
         const validPass = await user.comparePassword(password);
+        console.log(`Password comparison result for ${username}: ${validPass}`);
         if (!validPass) {
             console.log(`Invalid password for username: ${username}`);
             return res.status(400).send('Invalid password');
