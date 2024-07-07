@@ -19,12 +19,13 @@ router.post('/register', async (req, res) => {
 
         // Create a new user with hashed password
         const user = new User({ username, password });
-        const savedUser = await user.save();
-        res.status(201).send({ user: savedUser._id });
+        await user.save(); // Pre-save hook hashes the password
+        res.status(201).send({ user: user._id });
     } catch (err) {
         res.status(400).send(err.message);
     }
 });
+
 
 // Login route
 router.post('/login', async (req, res) => {
@@ -53,6 +54,7 @@ router.post('/login', async (req, res) => {
         res.status(400).send(err.message);
     }
 });
+
 
 // Get user details route (protected)
 router.get('/user/:id', authenticateToken, async (req, res) => {
