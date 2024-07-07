@@ -1,5 +1,4 @@
 require('dotenv').config();
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -12,14 +11,11 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Serve static files from the 'docs' directory
 app.use(express.static(path.join(__dirname, '../docs')));
 
-// Routes
 app.use('/users', usersRoute);
 app.use('/posts', postsRoute);
 
-// Handle all other routes with index.html (for SPA)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../docs', 'index.html'));
 });

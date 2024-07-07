@@ -30,23 +30,25 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+        console.log(`Login attempt for username: ${username}`);
 
-        // Find the user by username
         const user = await User.findOne({ username });
         if (!user) {
+            console.log(`User not found: ${username}`);
             return res.status(400).send('Username or password is incorrect');
         }
 
-        // Compare the provided password with the stored hashed password
         const validPass = await user.comparePassword(password);
         if (!validPass) {
+            console.log(`Invalid password for username: ${username}`);
             return res.status(400).send('Invalid password');
         }
 
-        // Generate a JWT token
         const token = jwt.generateToken(user);
+        console.log(`Login successful for username: ${username}`);
         res.json({ token, userId: user._id });
     } catch (err) {
+        console.error('Login error:', err);
         res.status(400).send(err.message);
     }
 });

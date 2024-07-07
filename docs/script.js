@@ -51,23 +51,29 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
 
-    const response = await fetch(`${API_URL}/users/login`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-    });
+    try {
+        const response = await fetch(`${API_URL}/users/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password })
+        });
 
-    if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userId', data.userId);
-        alert('Login successful');
-        updateUIForLoggedInUser(username);
-        fetchUserDetails(data.userId, data.token);
-    } else {
-        alert('Login failed');
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('userId', data.userId);
+            alert('Login successful');
+            updateUIForLoggedInUser(username);
+            fetchUserDetails(data.userId, data.token);
+        } else {
+            const errorText = await response.text();
+            alert('Login failed: ' + errorText);
+        }
+    } catch (err) {
+        console.error('Login request failed:', err);
+        alert('An error occurred while trying to log in.');
     }
 });
 
@@ -95,6 +101,7 @@ async function fetchUserDetails(userId, token) {
         alert('Failed to fetch user details');
     }
 }
+
 
 // Handle post creation
 document.getElementById('createPostForm').addEventListener('submit', async function(event) {

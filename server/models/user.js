@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true }
 });
 
-// Pre-save hook to hash the password before saving
 userSchema.pre('save', async function(next) {
     if (this.isModified('password') || this.isNew) {
         try {
@@ -21,7 +20,6 @@ userSchema.pre('save', async function(next) {
     }
 });
 
-// Method to compare input password with hashed password in database
 userSchema.methods.comparePassword = async function(password) {
     return await bcrypt.compare(password, this.password);
 };
