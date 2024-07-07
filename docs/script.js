@@ -1,10 +1,10 @@
 const API_URL = 'https://techthoughtsblog.onrender.com';
 
-// Handle user registration
-document.getElementById('registerForm').addEventListener('submit', async function(event) {
+// Function to handle user registration
+document.getElementById('register').addEventListener('click', async function(event) {
     event.preventDefault();
-    const username = document.getElementById('registerUsername').value;
-    const password = document.getElementById('registerPassword').value;
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
     const response = await fetch(`${API_URL}/users/register`, {
         method: 'POST',
@@ -16,40 +16,17 @@ document.getElementById('registerForm').addEventListener('submit', async functio
 
     if (response.ok) {
         alert('User registered successfully');
-        autoLogin(username, password);
     } else {
         const errorText = await response.text();
         alert('User registration failed: ' + errorText);
     }
 });
 
-// Function to automatically log in after registration
-async function autoLogin(username, password) {
-    const response = await fetch(`${API_URL}/users/login`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-    });
-
-    if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userId', data.userId);
-        alert('Login successful');
-        updateUIForLoggedInUser(username);
-        fetchUserDetails(data.userId, data.token);
-    } else {
-        alert('Auto-login failed');
-    }
-}
-
-// Handle user login
-document.getElementById('loginForm').addEventListener('submit', async function(event) {
+// Function to handle user login
+document.getElementById('login').addEventListener('click', async function(event) {
     event.preventDefault();
-    const username = document.getElementById('loginUsername').value;
-    const password = document.getElementById('loginPassword').value;
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
     const response = await fetch(`${API_URL}/users/login`, {
         method: 'POST',
@@ -62,45 +39,28 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.token);
-        localStorage.setItem('userId', data.userId);
-        alert('Login successful');
+        localStorage.setItem('username', username);
         updateUIForLoggedInUser(username);
-        fetchUserDetails(data.userId, data.token);
+        alert('Login successful');
     } else {
         alert('Login failed');
     }
 });
 
-// Handle user logout
+// Function to handle user logout
 document.getElementById('logout').addEventListener('click', function() {
     localStorage.removeItem('token');
-    localStorage.removeItem('userId');
+    localStorage.removeItem('username');
     updateUIForLoggedOutUser();
     alert('Logged out successfully');
 });
 
-// Fetch user details
-async function fetchUserDetails(userId, token) {
-    const response = await fetch(`${API_URL}/users/user/${userId}`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
-    });
-
-    if (response.ok) {
-        const user = await response.json();
-        document.getElementById('userDetails').textContent = `Logged in as: ${user.username}`;
-    } else {
-        alert('Failed to fetch user details');
-    }
-}
-
-// Handle post creation
-document.getElementById('createPostForm').addEventListener('submit', async function(event) {
+// Function to create a new post
+document.getElementById('createPost').addEventListener('click', async function(event) {
     event.preventDefault();
-    const title = document.getElementById('postTitle').value;
-    const content = document.getElementById('postContent').value;
+    const title = document.getElementById('title').value;
+    const content = quill.root.innerHTML;
+    const video = document.getElementById('video').files[0];
     const token = localStorage.getItem('token');
 
     if (!token) {
@@ -108,13 +68,19 @@ document.getElementById('createPostForm').addEventListener('submit', async funct
         return;
     }
 
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('content', content);
+    if (video) {
+        formData.append('video', video);
+    }
+
     const response = await fetch(`${API_URL}/posts`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ title, content })
+        body: formData
     });
 
     if (response.ok) {
@@ -125,7 +91,7 @@ document.getElementById('createPostForm').addEventListener('submit', async funct
     }
 });
 
-// Fetch and display posts
+// Function to fetch and display posts
 async function fetchPosts() {
     const response = await fetch(`${API_URL}/posts`);
     const posts = await response.json();
@@ -134,24 +100,127 @@ async function fetchPosts() {
     posts.forEach(post => {
         const postDiv = document.createElement('div');
         postDiv.className = 'post';
+        const formattedDate = new Date(post.createdAt).toLocaleDateString("en-US", {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
         postDiv.innerHTML = `
             <h2>${post.title}</h2>
             <p>${post.content}</p>
             <p class="author">By: ${post.author.username}</p>
+            <p class="date">Posted on: ${formattedDate}</p>
+            ${post.video ? `<video controls src="${post.video}" style="width: 100%;"></video>` : ''}
+            <div class="comments">
+                <h3>Comments</h3>
+                <div id="comments-${post._id}">${post.comments.map(comment => `
+                    <div class="comment">
+                        <p>${comment.text}</p>
+                        <p class="author">By: ${comment.author.username}</p>
+                    </div>
+                `).join('')}</div>
+                <textarea id="commentText-${post._id}" placeholder="Write a comment..."></textarea>
+                <button class="addComment btn" data-id="${post._id}">Add Comment</button>
+            </div>
+            <button class="edit btn" data-id="${post._id}">Edit</button>
+            <button class="delete btn" data-id="${post._id}">Delete</button>
         `;
         postsDiv.appendChild(postDiv);
     });
+
+    // Add event listeners for comments, edit, and delete buttons
+    addEventListeners();
 }
 
-// Update UI for logged in user
+// Function to add event listeners for dynamic elements
+function addEventListeners() {
+    document.querySelectorAll('.addComment').forEach(button => {
+        button.addEventListener('click', async function() {
+            const postId = this.getAttribute('data-id');
+            const commentText = document.getElementById(`commentText-${postId}`).value;
+            const token = localStorage.getItem('token');
+
+            const response = await fetch(`${API_URL}/posts/${postId}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ text: commentText })
+            });
+
+            if (response.ok) {
+                alert('Comment added successfully');
+                fetchPosts();
+            } else {
+                alert('Failed to add comment');
+            }
+        });
+    });
+
+    document.querySelectorAll('.edit').forEach(button => {
+        button.addEventListener('click', async function() {
+            const postId = this.getAttribute('data-id');
+            const newTitle = prompt('Enter new title');
+            const newContent = prompt('Enter new content');
+            const token = localStorage.getItem('token');
+
+            const response = await fetch(`${API_URL}/posts/${postId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ title: newTitle, content: newContent })
+            });
+
+            if (response.ok) {
+                alert('Post updated successfully');
+                fetchPosts();
+            } else {
+                alert('Failed to update post');
+            }
+        });
+    });
+
+    document.querySelectorAll('.delete').forEach(button => {
+        button.addEventListener('click', async function() {
+            const postId = this.getAttribute('data-id');
+            const token = localStorage.getItem('token');
+            console.log('Deleting post:', postId);
+
+            const response = await fetch(`${API_URL}/posts/${postId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                console.log('Post deleted successfully');
+                alert('Post deleted successfully');
+                fetchPosts();
+            } else {
+                const errorText = await response.text();
+                console.error('Failed to delete post:', errorText);
+                alert('Failed to delete post: ' + errorText);
+            }
+        });
+    });
+}
+
+// Function to update UI for logged in user
 function updateUIForLoggedInUser(username) {
     document.getElementById('authForm').style.display = 'none';
     document.getElementById('userInfo').style.display = 'block';
     document.getElementById('welcomeMessage').textContent = `Welcome, ${username}`;
+    document.getElementById('welcomeMessage').style.marginBottom = '10px';
     document.getElementById('postForm').style.display = 'block';
 }
 
-// Update UI for logged out user
+// Function to update UI for logged out user
 function updateUIForLoggedOutUser() {
     document.getElementById('authForm').style.display = 'block';
     document.getElementById('userInfo').style.display = 'none';
@@ -160,10 +229,7 @@ function updateUIForLoggedOutUser() {
 
 // Check if user is already logged in
 if (localStorage.getItem('token')) {
-    const username = localStorage.getItem('username');
-    const userId = localStorage.getItem('userId');
-    updateUIForLoggedInUser(username);
-    fetchUserDetails(userId, localStorage.getItem('token'));
+    updateUIForLoggedInUser(localStorage.getItem('username'));
 }
 
 // Fetch posts on page load

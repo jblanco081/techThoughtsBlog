@@ -1,95 +1,204 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Roboto', sans-serif;
+    background-color: #121212;
+    color: #e0e0e0;
     margin: 0;
     padding: 0;
     display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    background: #1e1e1e;
+    padding: 20px 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.7);
+    width: 100%;
+    max-width: 600px;
+    height: 100%;
+    overflow-y: auto;
+    text-align: center;
+    display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    margin-top: 20px;
 }
 
 header {
-    background-color: #333;
-    color: white;
-    padding: 1rem;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-h1 {
+header h1 {
     margin: 0;
-    font-size: 2rem;
+    font-size: 28px;
+    color: #e0e0e0;
 }
 
-main {
-    flex: 1;
+#userInfo {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 1rem;
 }
 
-#authContainer {
+#welcomeMessage {
+    margin-bottom: 10px;
+}
+
+.auth-form,
+.post-form {
+    margin-bottom: 20px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-top: 50px; /* Adjust this value to lower the forms */
-}
-
-.form {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin: 1rem 0;
-    padding: 1rem;
-    width: 300px;
-    text-align: center;
+    gap: 10px;
 }
 
 input, textarea {
-    width: calc(100% - 1rem);
-    padding: 0.5rem;
-    margin: 0.5rem 0;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
+    width: calc(100% - 22px);
+    padding: 12px;
+    border: 1px solid #424242;
+    border-radius: 6px;
+    background-color: #333;
+    color: #e0e0e0;
+    font-size: 16px;
 }
 
-button {
-    background-color: #333;
+textarea {
+    resize: vertical;
+    height: 100px;
+}
+
+.btn {
+    padding: 12px 20px;
+    background-color: #007bff;
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
 }
 
-button:hover {
-    background-color: #555;
+.btn:hover {
+    background-color: #0056b3;
 }
 
-#userInfo, #postForm {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin: 1rem 0;
-    padding: 1rem;
+#posts {
+    flex: 1;
+    margin-top: 20px;
+    overflow-y: auto;
 }
 
 .post {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin: 1rem 0;
-    padding: 1rem;
-    width: 80%; /* Adjust width as needed */
+    background: #2c2c2c;
+    padding: 20px;
+    border: 1px solid #424242;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    text-align: left;
+    transition: background-color 0.3s ease;
+}
+
+.post:hover {
+    background-color: #333;
 }
 
 .post h2 {
     margin-top: 0;
+    font-size: 20px;
+    color: #007bff;
 }
 
-.author {
-    font-style: italic;
-    color: #555;
+.post p {
+    margin: 10px 0;
+    color: #bdbdbd;
+}
+
+.post .author {
+    font-size: 0.9em;
+    color: #9e9e9e;
+}
+
+.post .date {
+    font-size: 0.8em;
+    color: #757575;
+}
+
+.post button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.post button.edit {
+    background-color: #28a745;
+    margin-right: 10px;
+}
+
+.post button:hover {
+    opacity: 0.8;
+}
+
+.comments {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.comments h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #e0e0e0;
+}
+
+.comments textarea {
+    width: calc(100% - 22px);
+    padding: 12px;
+    border: 1px solid #424242;
+    border-radius: 6px;
+    background-color: #333;
+    color: #e0e0e0;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.comments button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.comments button:hover {
+    background-color: #0056b3;
+}
+
+.comment {
+    margin-top: 10px;
+    padding: 10px;
+    background: #424242;
+    border-radius: 6px;
+}
+
+.comment p {
+    margin: 0;
+    color: #bdbdbd;
+}
+
+.comment .author {
+    font-size: 0.8em;
+    color: #9e9e9e;
+    margin-top: 5px;
 }
