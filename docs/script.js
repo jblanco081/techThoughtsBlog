@@ -188,18 +188,24 @@ async function fetchPosts() {
                     return;
                 }
 
-                const response = await fetch(`${API_URL}/posts/${postId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                try {
+                    const response = await fetch(`${API_URL}/posts/${postId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
 
-                if (response.ok) {
-                    alert('Post deleted successfully');
-                    fetchPosts(); // Refresh posts
-                } else {
-                    alert('Failed to delete post');
+                    if (response.ok) {
+                        alert('Post deleted successfully');
+                        fetchPosts(); // Refresh posts
+                    } else {
+                        const errorText = await response.text();
+                        alert('Failed to delete post: ' + errorText);
+                    }
+                } catch (err) {
+                    console.error('Delete request failed:', err);
+                    alert('An error occurred during the delete request.');
                 }
             });
         });
