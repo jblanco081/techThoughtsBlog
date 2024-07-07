@@ -43,6 +43,7 @@ async function autoLogin(username, password) {
             const data = await response.json();
             localStorage.setItem('token', data.token);
             localStorage.setItem('userId', data.userId);
+            localStorage.setItem('username', username); // Store username
             alert('Login successful');
             updateUIForLoggedInUser(username);
             fetchUserDetails(data.userId, data.token);
@@ -74,6 +75,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             const data = await response.json();
             localStorage.setItem('token', data.token);
             localStorage.setItem('userId', data.userId);
+            localStorage.setItem('username', username); // Store username
             alert('Login successful');
             updateUIForLoggedInUser(username);
             fetchUserDetails(data.userId, data.token);
@@ -90,6 +92,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 document.getElementById('logout').addEventListener('click', function() {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
+    localStorage.removeItem('username'); // Remove username
     updateUIForLoggedOutUser();
     alert('Logged out successfully');
 });
@@ -146,7 +149,7 @@ async function fetchPosts() {
 // Function to update UI for logged in user
 function updateUIForLoggedInUser(username) {
     document.getElementById('authForm').style.display = 'none';
-    document.getElementById('userInfo').style.display = 'block';
+    document.getElementById('userInfo').style.display = 'flex';
     document.getElementById('welcomeMessage').textContent = `Welcome, ${username}`;
     document.getElementById('postForm').style.display = 'block';
     fetchPosts(); // Fetch posts after login
@@ -154,7 +157,7 @@ function updateUIForLoggedInUser(username) {
 
 // Function to update UI for logged out user
 function updateUIForLoggedOutUser() {
-    document.getElementById('authForm').style.display = 'block';
+    document.getElementById('authForm').style.display = 'flex';
     document.getElementById('userInfo').style.display = 'none';
     document.getElementById('postForm').style.display = 'none';
 }
@@ -168,3 +171,32 @@ if (localStorage.getItem('token')) {
 
 // Ensure posts are fetched on page load
 document.addEventListener('DOMContentLoaded', fetchPosts);
+
+// Handle post creation
+document.getElementById('createPost').addEventListener('click', async function() {
+    const title = document.getElementById('title').value;
+    const content = document.getElementById('content').value;
+    const video = document.getElementById('video').value;
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert('You must be logged in to create a post');
+        return;
+    }
+
+    const response = await fetch(`${API_URL}/posts`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ title, content, video })
+    });
+
+    if (response.ok) {
+        alert('Post created successfully');
+        fetchPosts();
+    } else {
+        alert('Failed to create post');
+    }
+});

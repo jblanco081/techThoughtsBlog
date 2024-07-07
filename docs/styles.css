@@ -15,11 +15,13 @@ header {
     color: white;
     padding: 1rem;
     text-align: center;
-}
-
-h1 {
-    margin: 0;
-    font-size: 2rem;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 /* Main content styles */
@@ -28,26 +30,25 @@ main {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 1rem;
 }
 
 /* Container for the authentication forms */
-#authContainer {
+#authForm {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-top: 50px; /* Adjust this value to lower the forms */
+    justify-content: space-around;
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 1rem;
 }
 
-/* Styles for the forms */
 .form {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin: 1rem 0;
     padding: 1rem;
-    width: 300px; /* Fixed width for better alignment */
+    width: 45%;
     text-align: center;
 }
 
@@ -82,6 +83,9 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin: 1rem 0;
     padding: 1rem;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
 }
 
 /* Styles for individual posts */
@@ -91,7 +95,7 @@ button:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin: 1rem 0;
     padding: 1rem;
-    width: 80%; /* Adjust width as needed */
+    width: 80%;
 }
 
 /* Styles for post titles */
@@ -103,12 +107,6 @@ button:hover {
 .author {
     font-style: italic;
     color: #555;
-}
-
-/* Welcome message style */
-#welcomeMessage {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
 }
 
 /* Centering the auth forms and lowering them */
@@ -128,4 +126,9 @@ button:hover {
 #userInfo, #postForm {
     width: 80%;
     max-width: 600px;
+}
+
+/* Adjust margin for postForm when user is logged in */
+main {
+    margin-top: 1rem;
 }
