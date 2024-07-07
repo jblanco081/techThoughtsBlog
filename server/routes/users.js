@@ -9,34 +9,29 @@ const router = express.Router();
 // Register route
 router.post('/register', async (req, res) => {
     try {
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(req.body.password, salt);
-
-        const user = new User({
-            username: req.body.username,
-            password: hashedPassword
-        });
-
+        const { username, password } = req.body;
+        const user = new User({ username, password });
         const savedUser = await user.save();
-        res.send({ user: savedUser._id });
+        res.status(201).send({ user: savedUser._id });
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).send(err.message);
     }
 });
 
 // Login route
 router.post('/login', async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.body.username });
-        if (!user) return res.status(400).send('Username or password is wrong');
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+        if (!user) return res.status(400).send('Username or password is incorrect');
 
-        const validPass = await bcrypt.compare(req.body.password, user.password);
+        const validPass = await user.comparePassword(password);
         if (!validPass) return res.status(400).send('Invalid password');
 
         const token = jwt.generateToken(user);
         res.json({ token, userId: user._id });
     } catch (err) {
-        res.status(400).send(err);
+        res.status(400).send(err.message);
     }
 });
 
