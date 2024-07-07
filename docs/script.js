@@ -131,15 +131,77 @@ async function fetchPosts() {
                 ${post.video ? `<video controls><source src="${post.video}" type="video/mp4"></video>` : ''}
                 <div class="comments">
                     <h3>Comments</h3>
-                    ${post.comments.map(comment => `
-                        <div class="comment">
-                            <p>${comment.text}</p>
-                            <p class="author">By: ${comment.author.username}</p>
-                        </div>
-                    `).join('')}
+                    <div id="comments-${post._id}">
+                        ${post.comments.map(comment => `
+                            <div class="comment">
+                                <p>${comment.text}</p>
+                                <p class="author">By: ${comment.author.username}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <textarea id="commentText-${post._id}" placeholder="Write a comment..."></textarea>
+                    <button class="addComment" data-id="${post._id}">Add Comment</button>
                 </div>
+                <button class="deletePost" data-id="${post._id}">Delete Post</button>
             `;
             postsDiv.appendChild(postDiv);
+        });
+
+        // Add event listeners for comment buttons
+        document.querySelectorAll('.addComment').forEach(button => {
+            button.addEventListener('click', async function() {
+                const postId = this.getAttribute('data-id');
+                const commentText = document.getElementById(`commentText-${postId}`).value;
+                const token = localStorage.getItem('token');
+
+                if (!token) {
+                    alert('You must be logged in to add a comment');
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/posts/${postId}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ text: commentText })
+                });
+
+                if (response.ok) {
+                    alert('Comment added successfully');
+                    fetchPosts(); // Refresh posts
+                } else {
+                    alert('Failed to add comment');
+                }
+            });
+        });
+
+        // Add event listeners for delete buttons
+        document.querySelectorAll('.deletePost').forEach(button => {
+            button.addEventListener('click', async function() {
+                const postId = this.getAttribute('data-id');
+                const token = localStorage.getItem('token');
+
+                if (!token) {
+                    alert('You must be logged in to delete a post');
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/posts/${postId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    alert('Post deleted successfully');
+                    fetchPosts(); // Refresh posts
+                } else {
+                    alert('Failed to delete post');
+                }
+            });
         });
     } else {
         console.error('Failed to fetch posts:', await response.text());

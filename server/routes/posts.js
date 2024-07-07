@@ -1,6 +1,6 @@
 const express = require('express');
-const Post = require('../models/post'); // Import the Post model
-const authenticateToken = require('../middleware/auth'); // Middleware to authenticate JWT tokens
+const Post = require('../models/post');
+const authenticateToken = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router.post('/', authenticateToken, async (req, res) => {
             title,
             content,
             video,
-            author: req.user.id // Use the authenticated user's ID as the author
+            author: req.user.id
         });
         const savedPost = await post.save();
         res.status(201).json(savedPost);
@@ -54,7 +54,6 @@ router.put('/:id', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'Post not found' });
         }
 
-        // Check if the authenticated user is the author of the post
         if (post.author.toString() !== req.user.id) {
             return res.status(403).json({ message: 'Unauthorized' });
         }
@@ -79,7 +78,6 @@ router.delete('/:id', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: 'Post not found' });
         }
 
-        // Check if the authenticated user is the author of the post
         if (post.author.toString() !== req.user.id) {
             return res.status(403).json({ message: 'Unauthorized' });
         }
