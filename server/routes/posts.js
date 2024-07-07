@@ -1,111 +1,116 @@
 const express = require('express');
-const router = express.Router();
-const multer = require('multer');
-const Post = require('../models/post');
-const auth = require('../middleware/auth');
-const path = require('path');
-const fs = require('fs');
+const Post = require('../models/post'); // Import the Post model
+const authenticateToken = require('../middleware/auth'); // Middleware to authenticate JWT tokens
 
-// Set up multer for file uploads
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const uploadPath = path.join(__dirname, '..', 'uploads');
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath);
-        }
-        cb(null, uploadPath);
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname);
+const router = express.Router();
+
+// Create a new post (protected)
+router.post('/', authenticateToken, async (req, res) => {
+    try {
+        const { title, content, video } = req.body;
+        const post = new Post({
+            title,
+            content,
+            video,
+            author: req.user.id // Use the authenticated user's ID as the author
+        });
+        const savedPost = await post.save();
+        res.status(201).json(savedPost);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
     }
 });
-const upload = multer({ storage: storage });
 
-// Fetch all posts
+// Get all posts
 router.get('/', async (req, res) => {
     try {
         const posts = await Post.find().populate('author', 'username').populate('comments.author', 'username');
         res.json(posts);
-    } catch (error) {
-        console.error('Error fetching posts:', error);
-        res.status(500).send('Server error');
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 
-// Create a new post with optional video
-router.post('/', [auth, upload.single('video')], async (req, res) => {
+// Get a single post by ID
+router.get('/:id', async (req, res) => {
     try {
-        const { title, content } = req.body;
-        const post = new Post({
-            title,
-            content,
-            author: req.user.userId,
-            video: req.file ? req.file.path : null,
-            createdAt: new Date()
-        });
-        await post.save();
-        res.json(post);
-    } catch (error) {
-        console.error('Error creating post:', error);
-        res.status(500).send('Server error');
-    }
-});
-
-// Update a post
-router.put('/:id', auth, async (req, res) => {
-    try {
-        const { title, content } = req.body;
-        const post = await Post.findById(req.params.id);
+        const post = await Post.findById(req.params.id).populate('author', 'username').populate('comments.author', 'username');
         if (!post) {
-            return res.status(404).send('Post not found');
+            return res.status(404).json({ message: 'Post not found' });
         }
-        if (post.author.toString() !== req.user.userId) {
-            return res.status(403).send('Access denied');
+        res.json(post);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// Update a post (protected)
+router.put('/:id', authenticateToken, async (req, res) => {
+    try {
+        const { title, content, video } = req.body;
+        const post = await Post.findById(req.params.id);
+
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' });
         }
+
+        // Check if the authenticated user is the author of the post
+        if (post.author.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Unauthorized' });
+        }
+
         post.title = title;
         post.content = content;
-        await post.save();
-        res.json(post);
-    } catch (error) {
-        console.error('Error updating post:', error);
-        res.status(500).send('Server error');
+        post.video = video;
+
+        const updatedPost = await post.save();
+        res.json(updatedPost);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
     }
 });
 
-// Delete a post
-router.delete('/:id', auth, async (req, res) => {
+// Delete a post (protected)
+router.delete('/:id', authenticateToken, async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
+
         if (!post) {
-            return res.status(404).send('Post not found');
+            return res.status(404).json({ message: 'Post not found' });
         }
-        if (post.author.toString() !== req.user.userId) {
-            return res.status(403).send('Access denied');
+
+        // Check if the authenticated user is the author of the post
+        if (post.author.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Unauthorized' });
         }
+
         await post.remove();
         res.json({ message: 'Post deleted' });
-    } catch (error) {
-        console.error('Error deleting post:', error);
-        res.status(500).send('Server error');
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
 });
 
-// Add a comment to a post
-router.post('/:id/comments', auth, async (req, res) => {
+// Add a comment to a post (protected)
+router.post('/:id/comments', authenticateToken, async (req, res) => {
     try {
+        const { text } = req.body;
         const post = await Post.findById(req.params.id);
+
         if (!post) {
-            return res.status(404).send('Post not found');
+            return res.status(404).json({ message: 'Post not found' });
         }
-        post.comments.push({
-            text: req.body.text,
-            author: req.user.userId
-        });
-        await post.save();
-        res.json(post);
-    } catch (error) {
-        console.error('Error adding comment:', error);
-        res.status(500).send('Server error');
+
+        const comment = {
+            text,
+            author: req.user.id
+        };
+
+        post.comments.push(comment);
+        const updatedPost = await post.save();
+        res.status(201).json(updatedPost);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
     }
 });
 
