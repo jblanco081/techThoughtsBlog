@@ -1,4 +1,4 @@
-const API_URL = 'https://techthoughtsblog.onrender.com'; // Update this to your actual backend URL
+const API_URL = 'https://techthoughtsblog.onrender.com';
 
 // Handle user registration
 document.getElementById('registerForm').addEventListener('submit', async function(event) {
